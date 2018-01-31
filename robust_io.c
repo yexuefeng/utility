@@ -9,6 +9,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 
 /*
  * ro_read - a robust wrapper of read. It should take in count these three cases:
@@ -26,12 +27,14 @@ ssize_t ro_read(int fd, void *usrbuf, size_t n)
         {
             if (errno == EINTR) /* Interrupted by signal handler return */
                 nread = 0;
+            else if (errno == EAGAIN) /* Resource temporarily unavailable */
+                break;
             else
                 return -1;
         }
         else if (nread == 0)   /* EOF */
             break;
-
+        
         left -= nread;
         bufp += nread;
     }
